@@ -1,0 +1,2 @@
+add_subdirectory(test_os_sources)
+add_subdirectory(test_random_generator)
