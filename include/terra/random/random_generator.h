@@ -43,13 +43,14 @@ class RandomGenerator
     public:
         RandomGenerator(bool pseudo_random_only = false);
         ~RandomGenerator();
-        std::uint8_t GetRandomOctet();
+        std::uint8_t GetRandomOctet() noexcept;
         std::vector<std::uint8_t> GetRandomOctets(std::size_t count);
-        void GetRandomOctets(std::span<std::uint8_t> octets);
+        void GetRandomOctets(std::span<std::uint8_t> octets) noexcept;
 
     protected:
         std::uint8_t GetPseudoRandomOctet();
-        std::size_t SourceRandomOctets(std::span<std::uint8_t> buffer);
+        std::size_t SourceRandomOctets(
+                                std::span<std::uint8_t> buffer) const noexcept;
 
         bool pseudo_random_only;
         std::uniform_int_distribution<std::mt19937::result_type> distribution;

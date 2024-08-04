@@ -54,7 +54,8 @@ namespace Terra::Random
 RandomGenerator::RandomGenerator(bool pseudo_random_only) :
     pseudo_random_only(pseudo_random_only),
     distribution(0, 255),
-    random_engine{}
+    random_engine{static_cast<std::random_device::result_type>(
+        std::chrono::system_clock::now().time_since_epoch().count())}
 {
 #if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
     if (pseudo_random_only)
@@ -64,20 +65,22 @@ RandomGenerator::RandomGenerator(bool pseudo_random_only) :
     else
     {
         // Open /dev/random, which will yield the best source of random values
-        random_fd = open("/dev/random", O_NONBLOCK | O_RDONLY);
+        random_fd = open("/dev/random", O_NONBLOCK | O_RDONLY |  O_CLOEXEC);
 
         // Open /dev/urandom, which will yield pseudo-random values
-        pseudo_random_fd = open("/dev/urandom", O_NONBLOCK | O_RDONLY);
+        pseudo_random_fd =
+            open("/dev/urandom", O_NONBLOCK | O_RDONLY | O_CLOEXEC);
     }
 #endif
 
     try
     {
-        // Get a seed (this may throw an exception without random device)
+        // Get a random seed (this may throw an exception without random device)
         random_engine.seed(std::random_device()());
     }
     catch (...)
     {
+        // Just re-seed with the current time
         random_engine.seed(static_cast<std::random_device::result_type>(
             std::chrono::system_clock::now().time_since_epoch().count()));
     }
@@ -122,7 +125,7 @@ RandomGenerator::~RandomGenerator()
  *  Comments:
  *      None.
  */
-std::uint8_t RandomGenerator::GetRandomOctet()
+std::uint8_t RandomGenerator::GetRandomOctet() noexcept
 {
     std::uint8_t octet = 0;
 
@@ -185,20 +188,17 @@ std::vector<std::uint8_t> RandomGenerator::GetRandomOctets(std::size_t count)
  *  Comments:
  *      None.
  */
-void RandomGenerator::GetRandomOctets(std::span<std::uint8_t> octets)
+void RandomGenerator::GetRandomOctets(std::span<std::uint8_t> octets) noexcept
 {
     // If requesting no values, return early
-    if (octets.size() == 0) return;
+    if (octets.empty()) return;
 
     // Source some random values from the operating system
     SourceRandomOctets(octets);
 
     // XOR each of the random octets with octets from the C++ pseudo-random
     // number generator
-    for (std::size_t i = 0; i < octets.size(); i++)
-    {
-        octets[i] ^= GetPseudoRandomOctet();
-    }
+    for (auto &octet : octets) octet ^= GetPseudoRandomOctet();
 }
 
 /*
@@ -239,12 +239,13 @@ std::uint8_t RandomGenerator::GetPseudoRandomOctet()
  *  Comments:
  *      None.
  */
-std::size_t RandomGenerator::SourceRandomOctets(std::span<std::uint8_t> buffer)
+std::size_t RandomGenerator::SourceRandomOctets(
+                                std::span<std::uint8_t> buffer) const noexcept
 {
     std::size_t octets_sourced = 0;
 
     // If the count is zero or using the C++ PRNG, just return
-    if ((buffer.size() == 0) || pseudo_random_only) return 0;
+    if (buffer.empty() || pseudo_random_only) return 0;
 
 #if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
     // Attempt to read random values
