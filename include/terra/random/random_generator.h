@@ -1,7 +1,7 @@
 /*
  *  random_generator.h
  *
- *  Copyright (C) 2024
+ *  Copyright (C) 2024, 2025
  *  Terrapane Corporation
  *  All Rights Reserved
  *
@@ -44,11 +44,11 @@ class RandomGenerator
         RandomGenerator(bool pseudo_random_only = false);
         ~RandomGenerator();
         std::uint8_t GetRandomOctet() noexcept;
-        std::vector<std::uint8_t> GetRandomOctets(std::size_t count);
+        std::vector<std::uint8_t> GetRandomOctets(std::size_t count) noexcept;
         void GetRandomOctets(std::span<std::uint8_t> octets) noexcept;
 
     protected:
-        std::uint8_t GetPseudoRandomOctet();
+        std::uint8_t GetPseudoRandomOctet() noexcept;
         std::size_t SourceRandomOctets(
                                 std::span<std::uint8_t> buffer) const noexcept;
 

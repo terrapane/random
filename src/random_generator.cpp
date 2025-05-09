@@ -1,7 +1,7 @@
 /*
  *  random_generator.cpp
  *
- *  Copyright (C) 2024
+ *  Copyright (C) 2024, 2025
  *  Terrapane Corporation
  *  All Rights Reserved
  *
@@ -18,14 +18,15 @@
 #if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
 #include <fcntl.h>
 #include <unistd.h>
-#elif defined(_WIN32)
-#include <ntstatus.h>
+#endif
+#ifdef _WIN32
 // The following define is required as ntstatus.h would have already defined
 // various status definitions and, without it, there are redefinition errors
 #define WIN32_NO_STATUS
 #include <Windows.h>
 #include <bcrypt.h>
 #undef WIN32_NO_STATUS
+#include <ntstatus.h>
 #endif
 #include <chrono>
 #include <cstdlib>
@@ -54,8 +55,7 @@ namespace Terra::Random
 RandomGenerator::RandomGenerator(bool pseudo_random_only) :
     pseudo_random_only(pseudo_random_only),
     distribution(0, 255),
-    random_engine{static_cast<std::random_device::result_type>(
-        std::chrono::system_clock::now().time_since_epoch().count())}
+    random_engine{}
 {
 #if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
     if (pseudo_random_only)
@@ -154,7 +154,8 @@ std::uint8_t RandomGenerator::GetRandomOctet() noexcept
  *  Comments:
  *      None.
  */
-std::vector<std::uint8_t> RandomGenerator::GetRandomOctets(std::size_t count)
+std::vector<std::uint8_t> RandomGenerator::GetRandomOctets(
+                                                    std::size_t count) noexcept
 {
     std::vector<std::uint8_t> octets(count);
 
@@ -216,9 +217,9 @@ void RandomGenerator::GetRandomOctets(std::span<std::uint8_t> octets) noexcept
  *  Comments:
  *      None.
  */
-std::uint8_t RandomGenerator::GetPseudoRandomOctet()
+std::uint8_t RandomGenerator::GetPseudoRandomOctet() noexcept
 {
-    return distribution(random_engine);
+    return static_cast<std::uint8_t>(distribution(random_engine));
 }
 
 /*
