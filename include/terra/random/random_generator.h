@@ -56,7 +56,7 @@ class RandomGenerator
         std::uniform_int_distribution<std::mt19937::result_type> distribution;
         std::mt19937 random_engine;
 
-#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+#if defined(__unix__) || defined(__APPLE__)
         int random_fd;
         int pseudo_random_fd;
 #endif

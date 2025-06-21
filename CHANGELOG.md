@@ -1,11 +1,17 @@
 # Change Log
 
+v1.0.3
+
+- Changed ifdef statements to allow building on more UNIX-like systems
+- Addressed clang-tidy complaints
+
 v1.0.2
 
 - Updated to use v1.0.2 of the Simple Test Framework
 - Revised build options for Windows to enable additional warnings
 - Enable warnings to be treated as errors during builds
 - Addressed a warning produced with the revised warning level
+- Added explicit support for FreeBSD
 
 v1.0.1
 

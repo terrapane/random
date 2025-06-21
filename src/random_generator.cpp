@@ -15,7 +15,7 @@
  *      None.
  */
 
-#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+#if defined(__unix__) || defined(__APPLE__)
 #include <fcntl.h>
 #include <unistd.h>
 #endif
@@ -55,9 +55,10 @@ namespace Terra::Random
 RandomGenerator::RandomGenerator(bool pseudo_random_only) :
     pseudo_random_only(pseudo_random_only),
     distribution(0, 255),
-    random_engine{}
+    random_engine{static_cast<std::random_device::result_type>(
+        std::chrono::steady_clock::now().time_since_epoch().count())}
 {
-#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+#if defined(__unix__) || defined(__APPLE__)
     if (pseudo_random_only)
     {
         random_fd = pseudo_random_fd = -1;
@@ -75,14 +76,16 @@ RandomGenerator::RandomGenerator(bool pseudo_random_only) :
 
     try
     {
-        // Get a random seed (this may throw an exception without random device)
+        // Re-seed with random device (may throw an exception in rare cases)
         random_engine.seed(std::random_device()());
     }
     catch (...)
     {
-        // Just re-seed with the current time
+        // Re-seed with the current time; redundant with the initializer list,
+        // but this code is very unlikely to ever be called since it's very
+        // unusual for std::random_device() to fail
         random_engine.seed(static_cast<std::random_device::result_type>(
-            std::chrono::system_clock::now().time_since_epoch().count()));
+            std::chrono::steady_clock::now().time_since_epoch().count()));
     }
 }
 
@@ -103,7 +106,7 @@ RandomGenerator::RandomGenerator(bool pseudo_random_only) :
  */
 RandomGenerator::~RandomGenerator()
 {
-#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+#if defined(__unix__) || defined(__APPLE__)
     // Close the random file sources if they are open
     if (random_fd >= 0) close(random_fd);
     if (pseudo_random_fd >= 0) close(pseudo_random_fd);
@@ -248,7 +251,7 @@ std::size_t RandomGenerator::SourceRandomOctets(
     // If the count is zero or using the C++ PRNG, just return
     if (buffer.empty() || pseudo_random_only) return 0;
 
-#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+#if defined(__unix__) || defined(__APPLE__)
     // Attempt to read random values
     if (random_fd >= 0)
     {
