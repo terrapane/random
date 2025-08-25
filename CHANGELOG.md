@@ -1,5 +1,14 @@
 # Change Log
 
+v1.0.4
+
+- Removed some code that was redundant to reduce size and risk of maintenance
+  mistakes
+- Explicitly check the entropy value of the random\_device to ensure there
+  is entropy before choosing to use it
+- Employ a Chi-Squared test to verify uniformity of random numbers in
+  the test suite
+
 v1.0.3
 
 - Changed ifdef statements to allow building on more UNIX-like systems

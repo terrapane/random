@@ -43,8 +43,8 @@ namespace Terra::Random
  *
  *  Parameters:
  *      pseudo_random_only [in]
- *          Use the C++ PRNG only.  This is faster, but less ideal as compared
- *          to using OS-provided random sources.
+ *          If true, use the C++ PRNG only.  This is faster, but less ideal than
+ *          using OS-provided random sources in addition to the C++ PRNG.
  *
  *  Returns:
  *      Nothing.
@@ -55,7 +55,7 @@ namespace Terra::Random
 RandomGenerator::RandomGenerator(bool pseudo_random_only) :
     pseudo_random_only(pseudo_random_only),
     distribution(0, 255),
-    random_engine{static_cast<std::random_device::result_type>(
+    random_engine{static_cast<std::mt19937::result_type>(
         std::chrono::steady_clock::now().time_since_epoch().count())}
 {
 #if defined(__unix__) || defined(__APPLE__)
@@ -76,15 +76,22 @@ RandomGenerator::RandomGenerator(bool pseudo_random_only) :
 
     try
     {
-        // Re-seed with random device (may throw an exception in rare cases)
-        random_engine.seed(std::random_device()());
+        // Define the random device
+        std::random_device rd;
+
+        // Re-seed with random device (may throw an exception in rare cases);
+        // note that the engine has already been seeded with the current
+        // time, so no need to re-seed if there there is no entropy
+        if (rd.entropy() > 0)
+        {
+            random_engine.seed(static_cast<std::mt19937::result_type>(rd()));
+        }
     }
     catch (...)
     {
-        // Re-seed with the current time; redundant with the initializer list,
-        // but this code is very unlikely to ever be called since it's very
-        // unusual for std::random_device() to fail
-        random_engine.seed(static_cast<std::random_device::result_type>(
+        // This code is very unlikely to ever be called since it's very
+        // unusual for std::random_device() to fail, but reseed if it happens
+        random_engine.seed(static_cast<std::mt19937::result_type>(
             std::chrono::steady_clock::now().time_since_epoch().count()));
     }
 }
@@ -157,20 +164,11 @@ std::uint8_t RandomGenerator::GetRandomOctet() noexcept
  *  Comments:
  *      None.
  */
-std::vector<std::uint8_t> RandomGenerator::GetRandomOctets(
-                                                    std::size_t count) noexcept
+std::vector<std::uint8_t> RandomGenerator::GetRandomOctets(std::size_t count)
 {
     std::vector<std::uint8_t> octets(count);
 
-    // If requesting no values, return early
-    if (count == 0) return {};
-
-    // Source some random values from the operating system
-    SourceRandomOctets(octets);
-
-    // XOR each of the random octets with octets from the C++ pseudo-random
-    // number generator
-    for (std::size_t i = 0; i < count; i++) octets[i] ^= GetPseudoRandomOctet();
+    GetRandomOctets(octets);
 
     return octets;
 }

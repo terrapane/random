@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 # Define the Random Number Library project
 project(random
-        VERSION 1.0.3.0
+        VERSION 1.0.4.0
         DESCRIPTION "Random Number Library"
         LANGUAGES CXX)
 

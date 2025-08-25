@@ -41,10 +41,11 @@ namespace Terra::Random
 class RandomGenerator
 {
     public:
-        RandomGenerator(bool pseudo_random_only = false);
+        RandomGenerator() : RandomGenerator(false) {}
+        RandomGenerator(bool pseudo_random_only);
         ~RandomGenerator();
         std::uint8_t GetRandomOctet() noexcept;
-        std::vector<std::uint8_t> GetRandomOctets(std::size_t count) noexcept;
+        std::vector<std::uint8_t> GetRandomOctets(std::size_t count);
         void GetRandomOctets(std::span<std::uint8_t> octets) noexcept;
 
     protected:
