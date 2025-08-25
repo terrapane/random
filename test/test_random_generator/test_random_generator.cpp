@@ -31,12 +31,16 @@ std::pair<bool, bool> PerformChiSquaredTest(
     const double Critical = 364.04;             // alpha = 0.00001
     const double Expected = 100.0;              // Buckets have ~100 in each
     double chi_squared = 0.0;
+
+    // Ensure the histogram has the right size
+    if (histogram.size() != 256) return {true, true};
+
     for (std::size_t count : histogram)
     {
         chi_squared += (count - Expected) * (count - Expected) / Expected;
     }
 
-    return {chi_squared > Threshold, chi_squared > Critical};
+    return {chi_squared >= Threshold, chi_squared >= Critical};
 }
 
 // Check that there are not many buckets outside the expected range(this
