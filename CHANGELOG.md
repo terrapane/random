@@ -8,6 +8,7 @@ v1.0.4
   is entropy before choosing to use it
 - Employ a Chi-Squared test to verify uniformity of random numbers in
   the test suite
+- Updated dependencies
 
 v1.0.3
 
