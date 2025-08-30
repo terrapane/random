@@ -159,14 +159,13 @@ STF_TEST(RandomGenerator, UniformDistributionPseudoRandom)
     constexpr std::size_t Trials = 5;
     constexpr std::size_t Max_Failures = 4;
     constexpr std::size_t Iterations = 25'600;
-    RandomGenerator generator(true);
     std::vector<std::size_t> histogram(256);
     std::size_t failures = 0;
 
     // Test will be tried Trials times
     for (std::size_t trials = 0; trials < Trials; trials++)
     {
-        RandomGenerator generator;
+        RandomGenerator generator(true);
 
         // Initialize the histogram
         std::fill(histogram.begin(), histogram.end(), 0);

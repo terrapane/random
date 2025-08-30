@@ -13,5 +13,5 @@ set_target_properties(test_random_generator
         CXX_EXTENSIONS OFF)
 
 target_compile_options(test_random_generator PRIVATE
-    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
-    $<$<CXX_COMPILER_ID:MSVC>: >)
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-Wpedantic -Wextra -Wall>
+    $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>)
