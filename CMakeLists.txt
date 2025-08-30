@@ -21,10 +21,11 @@ option(random_INSTALL "Install the Random Number Library" ON)
 # Determine whether clang-tidy will be performed
 option(random_CLANG_TIDY "Use clang-tidy to perform linting during build" OFF)
 
+# Ensure testing is enabled to surface tests in dependencies
+include(CTest)
+
 add_subdirectory(dependencies)
 add_subdirectory(src)
-
-include(CTest)
 
 if(BUILD_TESTING AND random_BUILD_TESTS)
     add_subdirectory(test)
