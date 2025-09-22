@@ -1,5 +1,10 @@
 # Change Log
 
+v1.0.5
+
+- CMake changes
+- Updated dependencies
+
 v1.0.4
 
 - Removed some code that was redundant to reduce size and risk of maintenance

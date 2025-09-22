@@ -1,3 +1,6 @@
+# Include standard installation directory variables
+include(GNUInstallDirs)
+
 # Create the library
 add_library(random STATIC random_generator.cpp)
 add_library(Terra::random ALIAS random)
@@ -7,7 +10,10 @@ target_include_directories(random
     PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     PUBLIC
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+# On Widows, link to Bcrypt for random number generation
 if(WIN32)
     target_link_libraries(random PUBLIC Bcrypt)
 endif()
@@ -37,7 +43,6 @@ target_compile_options(random
 
 # Install target and associated include files
 if(random_INSTALL)
-    include(GNUInstallDirs)
     install(TARGETS random EXPORT randomTargets ARCHIVE)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ TYPE INCLUDE)
     install(EXPORT randomTargets
