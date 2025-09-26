@@ -7,8 +7,6 @@ add_library(Terra::random ALIAS random)
 
 # Specify the internal and public include directories
 target_include_directories(random
-    PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
