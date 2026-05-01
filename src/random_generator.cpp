@@ -260,9 +260,10 @@ std::size_t RandomGenerator::SourceRandomOctets(
     // Attempt to read pseudo-random values if more octets are needed
     if ((octets_sourced < buffer.size()) && (pseudo_random_fd >= 0))
     {
+        auto remaining_buffer = buffer.subspan(octets_sourced);
         auto result = read(pseudo_random_fd,
-                           buffer.data() + octets_sourced,
-                           buffer.size() - octets_sourced);
+                           remaining_buffer.data(),
+                           remaining_buffer.size());
         if (result > 0) octets_sourced += result;
     }
 #elif defined(_WIN32)

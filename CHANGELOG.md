@@ -1,5 +1,9 @@
 # Change Log
 
+v1.0.6
+
+- Removed pointer arithmetic
+
 v1.0.5
 
 - CMake changes
