@@ -1,7 +1,7 @@
 /*
  *  random_generator.cpp
  *
- *  Copyright (C) 2024, 2025
+ *  Copyright (C) 2024, 2025, 2026
  *  Terrapane Corporation
  *  All Rights Reserved
  *
@@ -28,7 +28,12 @@
 #undef WIN32_NO_STATUS
 #include <ntstatus.h>
 #endif
+#include <random>
 #include <chrono>
+#include <algorithm>
+#include <vector>
+#include <span>
+#include <cstdint>
 #include <cstdlib>
 #include <terra/random/random_generator.h>
 
@@ -57,22 +62,14 @@ RandomGenerator::RandomGenerator(bool pseudo_random_only) :
     distribution(0, 255),
     random_engine{static_cast<std::mt19937::result_type>(
         std::chrono::steady_clock::now().time_since_epoch().count())}
-{
 #if defined(__unix__) || defined(__APPLE__)
-    if (pseudo_random_only)
-    {
-        random_fd = pseudo_random_fd = -1;
-    }
-    else
-    {
-        // Open /dev/random, which will yield the best source of random values
-        random_fd = open("/dev/random", O_NONBLOCK | O_RDONLY |  O_CLOEXEC);
-
-        // Open /dev/urandom, which will yield pseudo-random values
-        pseudo_random_fd =
-            open("/dev/urandom", O_NONBLOCK | O_RDONLY | O_CLOEXEC);
-    }
+    ,
+    random_fd{-1},
+    pseudo_random_fd{-1}
 #endif
+{
+    // Open random devices if not using just the pseudorandom number generator
+    if (!pseudo_random_only) OpenRandomDevices();
 
     try
     {
@@ -97,6 +94,59 @@ RandomGenerator::RandomGenerator(bool pseudo_random_only) :
 }
 
 /*
+ *  RandomGenerator::RandomGenerator()
+ *
+ *  Description:
+ *      Copy constructor for the RandomGenerator.
+ *
+ *  Parameters:
+ *      other [in]
+ *          The other object from which to copy values.
+ *
+ *  Returns:
+ *      Nothing.
+ *
+ *  Comments:
+ *      None.
+ */
+RandomGenerator::RandomGenerator(const RandomGenerator &other) :
+    RandomGenerator(other.pseudo_random_only)
+{
+}
+
+/*
+ *  RandomGenerator::RandomGenerator()
+ *
+ *  Description:
+ *      Copy constructor for the RandomGenerator.
+ *
+ *  Parameters:
+ *      other [in]
+ *          The other object from which to move values.
+ *
+ *  Returns:
+ *      Nothing.
+ *
+ *  Comments:
+ *      None.
+ */
+RandomGenerator::RandomGenerator(RandomGenerator &&other) noexcept :
+    pseudo_random_only{other.pseudo_random_only},
+    distribution{other.distribution},
+    random_engine{other.random_engine}
+#if defined(__unix__) || defined(__APPLE__)
+    ,
+    random_fd{-1},
+    pseudo_random_fd{-1}
+#endif
+{
+#if defined(__unix__) || defined(__APPLE__)
+    std::swap(random_fd, other.random_fd);
+    std::swap(pseudo_random_fd, other.pseudo_random_fd);
+#endif
+}
+
+/*
  *  RandomGenerator::~RandomGenerator()
  *
  *  Description:
@@ -113,10 +163,126 @@ RandomGenerator::RandomGenerator(bool pseudo_random_only) :
  */
 RandomGenerator::~RandomGenerator()
 {
+    CloseRandomDevices();
+}
+
+/*
+ *  RandomGenerator::~operator=()
+ *
+ *  Description:
+ *      Copy assignment operator for RandomGenerator.
+ *
+ *  Parameters:
+ *      other [in]
+ *          The other object from which to copy values.
+ *
+ *  Returns:
+ *      Nothing.
+ *
+ *  Comments:
+ *      None.
+ */
+RandomGenerator &RandomGenerator::operator=(
+                                        const RandomGenerator &other) noexcept
+{
+    // Do nothing if assigning to self
+    if (this == &other) return *this;
+
+    // If both are pseudo_random_only, there's nothing more to do
+    if (pseudo_random_only == other.pseudo_random_only) return *this;
+
+    // Since the pseudo_random_only flag differs, adjust to match
+    if (!pseudo_random_only)
+    {
+        CloseRandomDevices();
+        pseudo_random_only = true;
+        return *this;
+    }
+
+    // Open random devices
+    pseudo_random_only = false;
+    OpenRandomDevices();
+
+    return *this;
+}
+
+/*
+ *  RandomGenerator::~operator=()
+ *
+ *  Description:
+ *      Move assignment operator for RandomGenerator.
+ *
+ *  Parameters:
+ *      other [in]
+ *          The other object from which to copy values.
+ *
+ *  Returns:
+ *      Nothing.
+ *
+ *  Comments:
+ *      None.
+ */
+RandomGenerator &RandomGenerator::operator=(RandomGenerator &&other) noexcept
+{
+    // Do nothing if moving to self
+    if (this == &other) return *this;
+
+#if defined(__unix__) || defined(__APPLE__)
+    std::swap(random_fd, other.random_fd);
+    std::swap(pseudo_random_fd, other.pseudo_random_fd);
+#endif
+
+    return *this;
+}
+
+/*
+ *  RandomGenerator::OpenRandomDevices()
+ *
+ *  Description:
+ *      Open the random and pseudorandom devices.
+ *
+ *  Parameters:
+ *      None.
+ *
+ *  Returns:
+ *      Nothing.
+ *
+ *  Comments:
+ *      None.
+ */
+void RandomGenerator::OpenRandomDevices() noexcept
+{
+#if defined(__unix__) || defined(__APPLE__)
+    // Open /dev/random, which will yield the best source of random values
+    random_fd = open("/dev/random", O_NONBLOCK | O_RDONLY | O_CLOEXEC);
+
+    // Open /dev/urandom, which will yield pseudo-random values
+    pseudo_random_fd = open("/dev/urandom", O_NONBLOCK | O_RDONLY | O_CLOEXEC);
+#endif
+}
+
+/*
+ *  RandomGenerator::CloseRandomDevices()
+ *
+ *  Description:
+ *      Close the random and pseudorandom devices.
+ *
+ *  Parameters:
+ *      None.
+ *
+ *  Returns:
+ *      Nothing.
+ *
+ *  Comments:
+ *      None.
+ */
+void RandomGenerator::CloseRandomDevices() noexcept
+{
 #if defined(__unix__) || defined(__APPLE__)
     // Close the random file sources if they are open
     if (random_fd >= 0) close(random_fd);
     if (pseudo_random_fd >= 0) close(pseudo_random_fd);
+    random_fd = pseudo_random_fd = -1;
 #endif
 }
 
