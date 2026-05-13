@@ -4,6 +4,7 @@ v1.0.6
 
 - Addressed recommendations from clang-tidy
 - Removed pointer arithmetic
+- Updated dependencies
 
 v1.0.5
 
