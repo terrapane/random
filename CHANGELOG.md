@@ -23,7 +23,7 @@ v1.0.4
 
 v1.0.3
 
-- Changed ifdef statements to allow building on more UNIX-like systems
+- Changed `ifdef` statements to allow building on more UNIX-like systems
 - Addressed clang-tidy complaints
 
 v1.0.2
