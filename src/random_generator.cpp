@@ -420,7 +420,7 @@ std::size_t RandomGenerator::SourceRandomOctets(
     if (random_fd >= 0)
     {
         auto result = read(random_fd, buffer.data(), buffer.size());
-        if (result > 0) octets_sourced += result;
+        if (result > 0) octets_sourced += static_cast<std::size_t>(result);
     }
 
     // Attempt to read pseudo-random values if more octets are needed
@@ -430,7 +430,7 @@ std::size_t RandomGenerator::SourceRandomOctets(
         auto result = read(pseudo_random_fd,
                            remaining_buffer.data(),
                            remaining_buffer.size());
-        if (result > 0) octets_sourced += result;
+        if (result > 0) octets_sourced += static_cast<std::size_t>(result);
     }
 #elif defined(_WIN32)
     // Source random octets from Windows' NIST SP800-90 compliant RNG, or

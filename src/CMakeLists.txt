@@ -36,7 +36,7 @@ endif()
 # Use the following compile options
 target_compile_options(random
     PRIVATE
-        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-Wpedantic -Wextra -Wall -Werror>
+        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:-Wpedantic -Wextra -Wall -Werror -Wconversion -Wshadow>
         $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>)
 
 # Install target and associated include files

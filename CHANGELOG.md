@@ -1,5 +1,9 @@
 # Change Log
 
+v1.0.7
+
+- Made compiler warnings stricter
+
 v1.0.6
 
 - Addressed recommendations from clang-tidy
