@@ -37,7 +37,8 @@ std::pair<bool, bool> PerformChiSquaredTest(
 
     for (std::size_t count : histogram)
     {
-        chi_squared += (count - Expected) * (count - Expected) / Expected;
+        chi_squared += (static_cast<double>(count) - Expected) *
+                       (static_cast<double>(count) - Expected) / Expected;
     }
 
     return {chi_squared >= Threshold, chi_squared >= Critical};

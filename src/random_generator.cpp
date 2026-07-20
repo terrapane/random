@@ -58,7 +58,7 @@ namespace Terra::Random
  *      None.
  */
 RandomGenerator::RandomGenerator(bool pseudo_random_only) :
-    pseudo_random_only(pseudo_random_only),
+    pseudo_random_only{pseudo_random_only},
     distribution(0, 255),
     random_engine{static_cast<std::mt19937::result_type>(
         std::chrono::steady_clock::now().time_since_epoch().count())}
