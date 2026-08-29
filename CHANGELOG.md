@@ -3,6 +3,7 @@
 v1.0.8
 
 - Updated dependencies
+- Enable clang-tidy within unit tests
 
 v1.0.7
 

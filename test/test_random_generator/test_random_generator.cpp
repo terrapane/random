@@ -17,8 +17,14 @@
 
 #include <cstddef>
 #include <utility>
+#include <vector>
+#include <algorithm>
+#include <cstdint>
 #include <terra/random/random_generator.h>
 #include <terra/stf/stf.h>
+
+namespace
+{
 
 using namespace Terra::Random;
 
@@ -35,33 +41,13 @@ std::pair<bool, bool> PerformChiSquaredTest(
     // Ensure the histogram has the right size
     if (histogram.size() != 256) return {true, true};
 
-    for (std::size_t count : histogram)
+    for (const auto count : histogram)
     {
         chi_squared += (static_cast<double>(count) - Expected) *
                        (static_cast<double>(count) - Expected) / Expected;
     }
 
     return {chi_squared >= Threshold, chi_squared >= Critical};
-}
-
-// Check that there are not many buckets outside the expected range(this
-// has been replaced with the Chi-squared test)
-bool PerformRangeTest(const std::vector<std::size_t> &histogram)
-{
-    const std::size_t lower_bound = 65;
-    const std::size_t upper_bound = 135;
-    const std::size_t threshold = 2;
-    std::size_t count = 0;
-
-    for (auto value : histogram)
-    {
-        // Though rare, a bucket might have fewer elements -- retry
-        if (value < lower_bound) count++;
-        if (value > upper_bound) count++;
-        if (count > threshold) return false;
-    }
-
-    return true;
 }
 
 // Test to ensure that the the PRNG routine(s) are seeding distinctly
@@ -134,12 +120,12 @@ STF_TEST(RandomGenerator, UniformDistribution)
         RandomGenerator generator;
 
         // Initialize the histogram
-        std::fill(histogram.begin(), histogram.end(), 0);
+        std::ranges::fill(histogram, 0);
 
         // Generate 25'600 random octets
         for (std::size_t i = 0; i < Iterations; i++)
         {
-            std::uint8_t value = generator.GetRandomOctet();
+            const std::uint8_t value = generator.GetRandomOctet();
             histogram[value]++;
         }
 
@@ -169,7 +155,7 @@ STF_TEST(RandomGenerator, UniformDistributionPseudoRandom)
         RandomGenerator generator(true);
 
         // Initialize the histogram
-        std::fill(histogram.begin(), histogram.end(), 0);
+        std::ranges::fill(histogram, 0);
 
         // Generate 25'600 random octets
         for (std::size_t i = 0; i < Iterations; i++)
@@ -206,10 +192,11 @@ STF_TEST(RandomGenerator, GetVectorOfRandomOctets1)
         RandomGenerator generator(true);
 
         // Initialize the histogram
-        std::fill(histogram.begin(), histogram.end(), 0);
+        std::ranges::fill(histogram, 0);
 
         // Generate "Count" random octets
-        std::vector<std::uint8_t> values = generator.GetRandomOctets(Count);
+        const std::vector<std::uint8_t> values =
+            generator.GetRandomOctets(Count);
         STF_ASSERT_EQ(Count, values.size());
         for (auto value : values) histogram[value]++;
 
@@ -222,4 +209,6 @@ STF_TEST(RandomGenerator, GetVectorOfRandomOctets1)
 
     // Ensure the number of failures is not exceeded allowable
     STF_ASSERT_LE(failures, Max_Failures);
+}
+
 }

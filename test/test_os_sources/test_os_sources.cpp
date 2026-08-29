@@ -16,10 +16,14 @@
  */
 
 #include <array>
+#include <cstdint>
 #include <terra/random/random_generator.h>
 #include <terra/stf/stf.h>
 
 using namespace Terra::Random;
+
+namespace
+{
 
 class RandomGenerator_ : public RandomGenerator
 {
@@ -31,9 +35,11 @@ class RandomGenerator_ : public RandomGenerator
 // Verify the OS RNG produces output
 STF_TEST(RandomOSSources, VerifyContent)
 {
-    std::array<std::uint8_t, 10> octets;
-    RandomGenerator_ rng;
+    std::array<std::uint8_t, 10> octets{};
+    const RandomGenerator_ rng;
 
     // Ensure we retrieve the expected number of octets
     STF_ASSERT_EQ(octets.size(), rng.SourceRandomOctets(octets));
 }
+
+} // namespace

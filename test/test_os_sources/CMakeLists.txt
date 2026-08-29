@@ -5,6 +5,16 @@ target_link_libraries(test_os_sources Terra::random Terra::stf)
 add_test(NAME test_os_sources
          COMMAND test_os_sources)
 
+# If requesting clang-tidy, try to look for it
+if(random_CLANG_TIDY)
+    find_program(CLANG_TIDY_COMMAND NAMES "clang-tidy")
+    if(CLANG_TIDY_COMMAND)
+        set_target_properties(test_os_sources PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
+    else()
+        message(WARNING "Could not find clang-tidy")
+    endif()
+endif()
+
 # Specify the C++ standard to observe
 set_target_properties(test_os_sources
     PROPERTIES
