@@ -31,6 +31,7 @@
 #include <random>
 #include <chrono>
 #include <algorithm>
+#include <array>
 #include <vector>
 #include <span>
 #include <cstdint>
@@ -71,18 +72,17 @@ RandomGenerator::RandomGenerator(bool pseudo_random_only) :
     // Open random devices if not using just the pseudorandom number generator
     if (!pseudo_random_only) OpenRandomDevices();
 
+    // Reseed the PRNG with random device
     try
     {
         // Define the random device
         std::random_device rd;
 
-        // Re-seed with random device (may throw an exception in rare cases);
-        // note that the engine has already been seeded with the current
-        // time, so no need to re-seed if there there is no entropy
-        if (rd.entropy() > 0)
-        {
-            random_engine.seed(static_cast<std::mt19937::result_type>(rd()));
-        }
+        // Collect 256-bits of entropy and reseed
+        std::array<std::uint32_t, 8> seed_values{};
+        std::ranges::generate(seed_values, [&rd] { return rd(); });
+        std::seed_seq seed_sequence(seed_values.begin(), seed_values.end());
+        random_engine.seed(seed_sequence);
     }
     catch (...)
     {

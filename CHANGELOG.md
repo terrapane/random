@@ -1,5 +1,9 @@
 # Change Log
 
+v1.0.9
+
+- Increased seed strength when using the PRNG
+
 v1.0.8
 
 - Updated dependencies
